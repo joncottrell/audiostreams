@@ -53,7 +53,7 @@ class AudioStreamConnection(object):
       self.stream_show_id = show_id
       self.icecastClient = IcecastSourceClient(self.stream_show_id, self.KBPS)
       logging.info('show_id: %s', self.stream_show_id)
-      self.stream.write('OK', self._on_stream_ready)
+      self.stream.write('OK\n', self._on_stream_ready)
     else:
       logging.info('show_id already taken: %s', show_id)
       self.stream.write('Error: "'+ show_id +'" currently streaming\n', self.stream.close)
@@ -117,6 +117,7 @@ class IcecastSourceClient(object):
         self.didStart = True
         logging.info('start playing')
       else:
+        logging.info('not enough to buffer yet')
         return
     
     if self.queue.empty():

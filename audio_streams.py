@@ -79,7 +79,6 @@ class AudioStreamConnection(object):
     logging.info('show_id %s connection closed (address: %s)', self.stream_show_id, self.address)
     self.stream_set.remove(self.stream)
     self.connection_set.remove(self)
-    self.icecastClient.periodic.stop()
     
 class IcecastSourceClient(object):
   BUFFER_TIME = 1.0

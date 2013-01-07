@@ -12,7 +12,7 @@ from tornado.ioloop import PeriodicCallback
 from tornado.iostream import IOStream
 from tornado.netutil import TCPServer
   
-logging.basicConfig(level=logging.INFO, format='%(levelname)s - - %(asctime)s %(message)s', datefmt='[%d/%b/%Y %H:%M:%S]')
+logging.basicConfig(filename='audio_streams.log',level=logging.INFO, format='%(levelname)s - - %(asctime)s %(message)s', datefmt='[%d/%b/%Y %H:%M:%S]')
 
 class AudioStreamServer(TCPServer):
  
@@ -90,7 +90,7 @@ class IcecastSourceClient(object):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     self.stream = IOStream(s)
     self.stream.set_close_callback(self._on_close)
-    self.stream.connect(("ec2-54-241-6-112.us-west-1.compute.amazonaws.com", 8000), self.connect)
+    self.stream.connect(("localhost", 8000), self.connect)
     self.curr_queue_time = 0.0
     self.periodic = PeriodicCallback(self.manage_audio, self.bytes2time(1000*AudioStreamConnection.BYTES_PER_READ*3/4), IOLoop.instance())
     

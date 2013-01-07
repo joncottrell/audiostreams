@@ -130,6 +130,7 @@ class IcecastSourceClient(object):
     if self.queue.empty() and self.isFinishing:
       logging.info('done')
       self.periodic.stop()
+      self.stream.close()
     else:
       data = self.queue.get()
       self.curr_queue_time -= self.bytes2time(len(data))

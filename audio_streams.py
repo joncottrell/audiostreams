@@ -80,13 +80,15 @@ class AudioStreamConnection(object):
     logging.info('show_id %s connection closed (address: %s)', self.stream_show_id, self.address)
     self.stream_set.remove(self.stream)
     self.connection_set.remove(self)
+    self.icecastClient.isFinishing = True
     
 class IcecastSourceClient(object):
-  BUFFER_TIME = 2.0
+  BUFFER_TIME = 3.0
   
   def __init__(self, stream_id, kbps):
     self.stream_id = stream_id
     self.didStart = False
+    self.isFinishing = False
     self.kbps = kbps
     self.queue = Queue.Queue()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
@@ -114,17 +116,20 @@ class IcecastSourceClient(object):
   def manage_audio(self):
     logging.info('periodic call')
     if not self.didStart:
-      if self.curr_queue_time > self.BUFFER_TIME:
+      if self.curr_queue_time > IcecastSourceClient.BUFFER_TIME:
         self.didStart = True
         logging.info('start playing')
       else:
         logging.info('not enough to buffer yet')
         return
     
-    if self.queue.empty():
-      logging.info('empty')
-      if self.stream.closed():
-        self.periodic.stop()
+    if not isFinishing and self.curr_queue_time < 1.0:
+      logging.info('too fast')
+      return
+    
+    if self.queue.empty() and isFinishing:
+      logging.info('done')
+      self.periodic.stop()
     else:
       data = self.queue.get()
       self.curr_queue_time -= self.bytes2time(len(data))

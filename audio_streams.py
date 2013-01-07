@@ -132,8 +132,7 @@ class IcecastSourceClient(object):
     return 8*num_bytes/(self.kbps*1024.0)
     
   def on_response(self, data):
-    # need to handle error
-    pass
+    logging.info('Received from icecast: %s' % data)
     
   def _on_close(self):
     logging.info('closed icecast stream')

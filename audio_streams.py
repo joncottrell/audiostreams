@@ -123,11 +123,11 @@ class IcecastSourceClient(object):
         logging.info('not enough to buffer yet')
         return
     
-    if not isFinishing and self.curr_queue_time < 1.0:
+    if not self.isFinishing and self.curr_queue_time < 1.0:
       logging.info('too fast')
       return
     
-    if self.queue.empty() and isFinishing:
+    if self.queue.empty() and self.isFinishing:
       logging.info('done')
       self.periodic.stop()
     else:

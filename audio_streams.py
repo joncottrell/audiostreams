@@ -52,8 +52,8 @@ class AudioStreamConnection(object):
     if not isBroadcasting:
       self.stream_show_id = show_id
       self.icecastClient = IcecastSourceClient(self.stream_show_id, self.KBPS)
-      logging.info('show_id: %s', self.stream_show_id)
-      self.stream.write('OK\n', self._on_stream_ready)
+      logging.info('show_id:%s', self.stream_show_id)
+      self.stream.write('OK\n\n', self._on_stream_ready)
     else:
       logging.info('show_id already taken: %s', show_id)
       self.stream.write('Error: "'+ show_id +'" currently streaming\n', self.stream.close)
@@ -79,6 +79,7 @@ class AudioStreamConnection(object):
     logging.info('show_id %s connection closed (address: %s)', self.stream_show_id, self.address)
     self.stream_set.remove(self.stream)
     self.connection_set.remove(self)
+    self.icecastClient.periodic.stop()
     
 class IcecastSourceClient(object):
   BUFFER_TIME = 1.0

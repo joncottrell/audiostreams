@@ -93,7 +93,7 @@ class IcecastSourceClient(object):
     self.stream.set_close_callback(self._on_close)
     self.stream.connect(("localhost", 8000), self.connect)
     self.curr_queue_time = 0.0
-    self.periodic = PeriodicCallback(self.manage_audio, self.bytes2time(1000*AudioStreamConnection.BYTES_PER_READ*3/4), IOLoop.instance())
+    self.periodic = PeriodicCallback(self.manage_audio, self.bytes2time(1000*AudioStreamConnection.BYTES_PER_READ), IOLoop.instance())
     
   def connect(self):
     logging.info('Icecast source client connected')

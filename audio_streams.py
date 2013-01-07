@@ -48,7 +48,7 @@ class AudioStreamConnection(object):
       if show_id == connection.stream_show_id:
         isBroadcasting = True
         break
-    #TODO: verify that is an actual show object id
+    #TODO: later - verify that is an actual show object id because mountpoints will be named after object id
     if not isBroadcasting:
       self.stream_show_id = show_id
       self.icecastClient = IcecastSourceClient(self.stream_show_id, self.KBPS)
@@ -62,7 +62,8 @@ class AudioStreamConnection(object):
     self.stream.read_bytes(self.BYTES_PER_READ, self._on_read_complete)
  
   def _on_read_complete(self, data):
-    binary_audio = base64.b64decode(data)        
+    # binary_audio = base64.b64decode(data)        
+    binary_audio = data
     self.send_icecast(binary_audio)
     self.stream.read_bytes(self.BYTES_PER_READ, self._on_read_complete)
  

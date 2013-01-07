@@ -25,7 +25,7 @@ class AudioStreamServer(TCPServer):
     AudioStreamConnection(stream, address)
  
 class AudioStreamConnection(object):
-  BYTES_PER_READ = 4608
+  BYTES_PER_READ = 2304
   KBPS = 128
   
   stream_set = set([])

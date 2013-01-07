@@ -24,7 +24,7 @@ class AudioStreamServer(TCPServer):
     AudioStreamConnection(stream, address)
  
 class AudioStreamConnection(object):
-  BYTES_PER_READ = 12288
+  BYTES_PER_READ = 4608
   KBPS = 128
   
   stream_set = set([])
@@ -81,7 +81,7 @@ class AudioStreamConnection(object):
     self.connection_set.remove(self)
     
 class IcecastSourceClient(object):
-  BUFFER_TIME = 1.0
+  BUFFER_TIME = 2.0
   
   def __init__(self, stream_id, kbps):
     self.stream_id = stream_id

@@ -52,7 +52,7 @@ class AudioStreamConnection(object):
     #TODO: later - verify that is an actual show object id because mountpoints will be named after object id
     if not isBroadcasting:
       self.stream_show_id = show_id
-      self.icecastClient = IcecastSourceClient(self.stream_show_id, self.KBPS)
+      self.icecastClient = IcecastSourceClient(self.stream_show_id, self.KBPS, self)
       logging.info('show_id:%s', self.stream_show_id)
       self.stream.write('OK\n\n', self._on_stream_ready)
     else:
@@ -85,8 +85,9 @@ class AudioStreamConnection(object):
 class IcecastSourceClient(object):
   BUFFER_TIME = 3.0
   
-  def __init__(self, stream_id, kbps):
+  def __init__(self, stream_id, kbps, audiostream_connection):
     self.stream_id = stream_id
+    self.connection = audiostream_connection
     self.didStart = False
     self.isFinishing = False
     self.kbps = kbps
@@ -115,6 +116,12 @@ class IcecastSourceClient(object):
     
   def manage_audio(self):
     logging.info('periodic call')
+    
+    if self.stream.closed():
+      self.connection.close()
+      self.periodic.start()
+      self.stream.close()
+    
     if not self.didStart:
       if self.curr_queue_time > IcecastSourceClient.BUFFER_TIME:
         self.didStart = True

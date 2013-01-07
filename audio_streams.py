@@ -121,6 +121,7 @@ class IcecastSourceClient(object):
         return
     
     if self.queue.empty():
+      logging.info('empty')
       if self.stream.closed():
         self.periodic.stop()
     else:

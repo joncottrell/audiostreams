@@ -118,7 +118,7 @@ class IcecastSourceClient(object):
     logging.info('periodic call')
     
     if self.stream.closed():
-      self.connection.close()
+      self.connection.stream.close()
       self.periodic.start()
       self.stream.close()
     

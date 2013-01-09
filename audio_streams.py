@@ -54,7 +54,7 @@ class AudioStreamConnection(object):
       self.stream_show_id = show_id
       self.icecastClient = IcecastSourceClient(self.stream_show_id, self.KBPS, self)
       logging.info('show_id:%s', self.stream_show_id)
-      self.stream.write('OK\n\n', self._on_stream_ready)
+      self.stream.write('OK\r\n', self._on_stream_ready)
     else:
       logging.info('show_id already taken: %s', show_id)
       self.stream.write('Error: "'+ show_id +'" currently streaming\n', self.stream.close)

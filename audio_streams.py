@@ -52,7 +52,7 @@ class AudioStreamConnection(object):
     #TODO: later - verify that is an actual show object id because mountpoints will be named after object id
     if not isBroadcasting:
       self.stream_show_id = show_id
-      self.icecastClient = IcecastSourceClient(self.stream_show_id, self.KBPS, self)
+      self.icecastClient = IcecastSourceClient.getIcecastSourceClient(self.stream_show_id, self.KBPS, self)
       logging.info('show_id:%s', self.stream_show_id)
       self.stream.write('OK\r\n', self._on_stream_ready)
     else:
@@ -85,6 +85,8 @@ class AudioStreamConnection(object):
 class IcecastSourceClient(object):
   BUFFER_TIME = 3.0
   
+  icecast_source_client_set = set([])
+  
   def __init__(self, stream_id, kbps, audiostream_connection):
     self.stream_id = stream_id
     self.connection = audiostream_connection
@@ -92,12 +94,20 @@ class IcecastSourceClient(object):
     self.isFinishing = False
     self.kbps = kbps
     self.queue = Queue.Queue()
+    IcecastSourceClient.icecast_source_client_set.add(self)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     self.stream = IOStream(s)
     self.stream.set_close_callback(self._on_close)
     self.stream.connect(("localhost", 8000), self.connect)
     self.curr_queue_time = 0.0
     self.periodic = PeriodicCallback(self.manage_audio, self.bytes2time(1000*AudioStreamConnection.BYTES_PER_READ), IOLoop.instance())
+    
+  def getIcecastSourceClient(stream_id, kbps, audiostream_connection):
+    for source_client in IcecastSourceClient.icecast_source_client_set:
+      if source_client.stream_id == stream_id:
+        return source_client
+        
+    return IcecastSourceClient(stream_id, kbps, audiostream_connection)
     
   def connect(self):
     logging.info('Icecast source client connected')
@@ -115,12 +125,12 @@ class IcecastSourceClient(object):
     logging.info('UP-time:%f,total:%f' % (self.bytes2time(len(data)), self.curr_queue_time))
     
   def manage_audio(self):
-    logging.info('periodic call')
+    logging.info('manage_audio')
     
     if self.stream.closed():
       self.connection.stream.close()
-      self.periodic.start()
-      self.stream.close()
+      self.periodic.stop()
+      return
     
     if not self.didStart:
       if self.curr_queue_time > IcecastSourceClient.BUFFER_TIME:
@@ -131,7 +141,7 @@ class IcecastSourceClient(object):
         return
     
     if not self.isFinishing and self.curr_queue_time < 1.0:
-      logging.info('too fast')
+      logging.info('STOP SENDING TO ICECAST UNTIL BUFFER FILLS UP AGAIN')
       return
     
     if self.queue.empty() and self.isFinishing:
@@ -152,6 +162,7 @@ class IcecastSourceClient(object):
     
   def _on_close(self):
     logging.info('closed icecast stream')
+    IcecastSourceClient.icecast_source_client_set.remove(self)
  
 def main():
   audio_stream_server = AudioStreamServer()

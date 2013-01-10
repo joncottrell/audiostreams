@@ -69,8 +69,6 @@ class AudioStreamConnection(object):
     self.stream.read_bytes(self.BYTES_PER_READ, self._on_read_complete)
  
   def send_icecast(self, data):
-    if self.icecastClient.isFinishing:
-      self.icecastClient.isFinishing = False
     self.icecastClient.add_audio(data)
     
   def _on_write_complete(self):
@@ -108,6 +106,7 @@ class IcecastSourceClient(object):
   def getIcecastSourceClient(stream_id, kbps, audiostream_connection):
     for source_client in IcecastSourceClient.icecast_source_client_set:
       if source_client.stream_id == stream_id:
+        source_client.isFinishing = False
         return source_client
         
     return IcecastSourceClient(stream_id, kbps, audiostream_connection)

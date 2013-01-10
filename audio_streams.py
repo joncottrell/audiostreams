@@ -101,7 +101,8 @@ class IcecastSourceClient(object):
     self.stream.connect(("localhost", 8000), self.connect)
     self.curr_queue_time = 0.0
     self.periodic = PeriodicCallback(self.manage_audio, self.bytes2time(1000*AudioStreamConnection.BYTES_PER_READ), IOLoop.instance())
-    
+  
+  @staticmethod
   def getIcecastSourceClient(stream_id, kbps, audiostream_connection):
     for source_client in IcecastSourceClient.icecast_source_client_set:
       if source_client.stream_id == stream_id:

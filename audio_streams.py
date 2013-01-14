@@ -12,8 +12,8 @@ from tornado.ioloop import PeriodicCallback
 from tornado.iostream import IOStream
 from tornado.netutil import TCPServer
   
-#logging.basicConfig(filename='audio_streams.log',level=logging.INFO, format='%(levelname)s - - %(asctime)s %(message)s', datefmt='[%d/%b/%Y %H:%M:%S]')
-logging.basicConfig(level=logging.INFO, format='%(levelname)s - - %(asctime)s %(message)s', datefmt='[%d/%b/%Y %H:%M:%S]')
+logging.basicConfig(filename='audio_streams.log',level=logging.INFO, format='%(levelname)s - - %(asctime)s %(message)s', datefmt='[%d/%b/%Y %H:%M:%S]')
+#logging.basicConfig(level=logging.INFO, format='%(levelname)s - - %(asctime)s %(message)s', datefmt='[%d/%b/%Y %H:%M:%S]')
 
 class AudioStreamServer(TCPServer):
  
@@ -112,7 +112,7 @@ class IcecastSourceClient(object):
     return IcecastSourceClient(stream_id, kbps, audiostream_connection)
     
   def connect(self):
-    logging.info('Icecast source client connected')
+    logging.info('%s-icecast port connected' % self.stream_id)
     self.stream.write(("SOURCE /%s HTTP/1.0\n"
     "Authorization: Basic c291cmNlOnRlc3RpbmcjIyNzcGFjZWJhcg==\n"
     "User-Agent: libshout/2.3.1\n"
@@ -124,11 +124,9 @@ class IcecastSourceClient(object):
   def add_audio(self, data):
     self.queue.put(data)
     self.curr_queue_time += self.bytes2time(len(data))
-    logging.info('UP-time:%f,total:%f' % (self.bytes2time(len(data)), self.curr_queue_time))
+    logging.info('%s-received,BUFFER:%f' % (self.stream_id, self.bytes2time(len(data)), self.curr_queue_time))
     
   def manage_audio(self):
-    logging.info('manage_audio')
-    
     if self.stream.closed():
       self.connection.stream.close()
       self.periodic.stop()
@@ -137,33 +135,31 @@ class IcecastSourceClient(object):
     if not self.didStart:
       if self.curr_queue_time > IcecastSourceClient.BUFFER_TIME:
         self.didStart = True
-        logging.info('start playing')
       else:
-        logging.info('not enough to buffer yet')
         return
     
     if not self.isFinishing and self.curr_queue_time < 1.0:
-      logging.info('STOP SENDING TO ICECAST UNTIL BUFFER FILLS UP AGAIN')
+      logging.info('%s - Halt sending to refill buffer' % self.stream_id)
       return
     
     if self.queue.empty() and self.isFinishing:
-      logging.info('done')
+      logging.info('%s - sent all data' % self.stream_id)
       self.periodic.stop()
       self.stream.close()
     else:
       data = self.queue.get()
       self.curr_queue_time -= self.bytes2time(len(data))
-      logging.info('DOWN-time:%f,total:%f' % (self.bytes2time(len(data)), self.curr_queue_time))
+      logging.info('%s-sending, BUFFER:%f' % (self.stream_id, self.bytes2time(len(data)), self.curr_queue_time))
       self.stream.write(data)
         
   def bytes2time(self, num_bytes):
     return 8*num_bytes/(self.kbps*1024.0)
     
   def on_response(self, data):
-    logging.info('Received from icecast: %s' % data)
+    logging.info('%s-Received from icecast: %s' % (self.stream_id ,data))
     
   def _on_close(self):
-    logging.info('closed icecast stream')
+    logging.info('%s-closed icecast stream' % self.stream_id)
     IcecastSourceClient.icecast_source_client_set.remove(self)
  
 def main():
